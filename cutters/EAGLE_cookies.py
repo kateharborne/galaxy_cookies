@@ -7,7 +7,7 @@ import pyread_eagle as read_eagle
 import gc
 import h5py
 
-class CreateGalaxyCutout:
+class CreateEagleGalaxyCutout:
 
     def __init__(self, first_eagle_file, centre, region_radius, gn, sgn):
 
@@ -38,13 +38,11 @@ class CreateGalaxyCutout:
     def read_galaxy(self, first_eagle_file, centre, region_radius, gn, sgn):
         """
         Cutting out a spherical region about some "centre" position with radius "load_region_radius".
-
         first_eagle_file :: (string) the path to an eagle snapshot file fom the relevent box.
         centre :: (Numpy array) the [x,y,z] centres of potential of the individual galaxy in cMpc.
         region_radius :: (numeric) the radius of the enclosing sphere in physical kpc (must be smaller than 100kpc).
         gn :: (numeric) The group number of the galaxy.
         sgn :: (numeric) The subgroup number of the galaxy.
-
         """
         # Initiallising dictionary for all properties to be stored
         self.data={}
@@ -114,8 +112,7 @@ class CreateGalaxyCutout:
 def write_galaxy_to_file(galaxy_cutout, first_eagle_file, snap_num, output_location):
     """
     A function to accept a cutout galaxy object and write this information to an HDF5 file
-
-    galaxy_cutout :: (Object) of the class CreateGalaxyCutout
+    galaxy_cutout :: (Object) of the class CreateEagleGalaxyCutout
     output_location :: (String) describing the path to the HDF5 file written
     """
 
@@ -175,15 +172,14 @@ def write_galaxy_to_file(galaxy_cutout, first_eagle_file, snap_num, output_locat
 
     print("Written galaxy to file: "+output_location)
 
-def cutout_galaxies(first_eagle_file, snap_num, regions_file, region_radius, output_location, galID = False):
+def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_radius, output_location, galID = False):
     """
     A function to accept a table of GalaxyID/centres and produce HDF5 files for
     each galaxy contained in the table.
-
     first_eagle_file :: (String) describing the path to one of the eagle files
                         from the relevant snapshot
     snap_num         :: (Numeric) the snapshot number
-    regions_file     :: (String) describing the path to the GalaxyID/Centres table
+    cutout_details   :: (String) describing the path to the GalaxyID/Centres table
     region_radius    :: (Numeric) the radius of the spherical region to be
                         extracted from the simulation (in physical kpc)
     output_location  :: (String) describing the path to the HDF5 file written
@@ -191,7 +187,7 @@ def cutout_galaxies(first_eagle_file, snap_num, regions_file, region_radius, out
                          only cut out particles associated to that GalaxyID.
     """
 
-    regions_df = pandas.read_csv(regions_file, comment="#")
+    regions_df = pandas.read_csv(cutout_details, comment="#")
     galaxy_no = len(regions_df["GalaxyID"])
 
     for i in range(galaxy_no):
@@ -206,6 +202,6 @@ def cutout_galaxies(first_eagle_file, snap_num, regions_file, region_radius, out
         centre = np.array([regions_df["CentreOfPotential_x"][i],
                            regions_df["CentreOfPotential_y"][i],
                            regions_df["CentreOfPotential_z"][i]])
-        galaxy_cutout = CreateGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
+        galaxy_cutout = CreateEagleGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
         write_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][i])+".hdf5")
         print("Galaxy "+str(i+1)+" of "+str(galaxy_no))

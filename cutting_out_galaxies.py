@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-
 import os
 from argparse import ArgumentParser
 from datetime import date
-from cutters import EAGLE_cookies
-from EAGLE_cookies import *
+from cutters.EAGLE_cookies import *
 
 # Define arguments ----
 parser = ArgumentParser()
@@ -26,7 +23,7 @@ parser.add_argument("-g", "--galID", action="store", dest="galID", type=Boolean,
 # Parse arguments ----
 args = parser.parse_args()
 
-if args.sim_type == "EAGLE" or "eagle":
+if args.sim_type == "EAGLE" or args.sim_type == "eagle":
     out_files = f"{args.output_loc}/{args.sim_type}_snap{args.snap_num}_{args.region_radius}kpc_galaxyID_"
     cutout_eagle_galaxies(first_eagle_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
