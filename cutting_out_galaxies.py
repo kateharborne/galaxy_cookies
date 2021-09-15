@@ -17,14 +17,24 @@ parser.add_argument("-s", "--snap_num", action="store", dest="snap_num", type=fl
                     default=None, help="The snapshot number from which galaxies are cut.")
 parser.add_argument("-r", "--radius", action="store", dest="region_radius", type=float,
                     default=None, help="The radius of the spherical region to be extracted from the simulation (in physical kpc).")
-parser.add_argument("-g", "--galID", action="store", dest="galID", type=Boolean,
-                    default=False, help="Specify True if you would like to only cut out particles associated to that GalaxyID.")
+parser.add_argument("-g", "--galID", action="store_true", dest="galID",
+                    default=False, help="Specify this flag if you would like to only cut out particles associated to that GalaxyID.")
 
 # Parse arguments ----
 args = parser.parse_args()
 
+if args.galID:
+    print(f"galID = {args.galID}: We will only be selecting particles associated with the galaxy ID.")
+else:
+    print(f"galID = {args.galID}: We will be selecting all particles within the radius {args.region_radius} kpc.")
+
 if args.sim_type == "EAGLE" or args.sim_type == "eagle":
-    out_files = f"{args.output_loc}/{args.sim_type}_snap{args.snap_num}_{args.region_radius}kpc_galaxyID_"
+
+    if args.galID:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"
+    else:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_galaxyID_"
+
     cutout_eagle_galaxies(first_eagle_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
     with open(f"{args.output_loc}/README.txt", 'w') as f:
