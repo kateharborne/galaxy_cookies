@@ -109,7 +109,7 @@ class CreateEagleGalaxyCutout:
         return self.data, self.region, self.numpart_total
 
 
-def write_galaxy_to_file(galaxy_cutout, first_eagle_file, snap_num, output_location):
+def write_eagle_galaxy_to_file(galaxy_cutout, first_eagle_file, snap_num, output_location):
     """
     A function to accept a cutout galaxy object and write this information to an HDF5 file
     galaxy_cutout :: (Object) of the class CreateEagleGalaxyCutout
@@ -176,6 +176,7 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
     """
     A function to accept a table of GalaxyID/centres and produce HDF5 files for
     each galaxy contained in the table.
+    
     first_eagle_file :: (String) describing the path to one of the eagle files
                         from the relevant snapshot
     snap_num         :: (Numeric) the snapshot number
@@ -203,5 +204,5 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
                            regions_df["CentreOfPotential_y"][i],
                            regions_df["CentreOfPotential_z"][i]])
         galaxy_cutout = CreateEagleGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
-        write_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][i])+".hdf5")
+        write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][i])+".hdf5")
         print("Galaxy "+str(i+1)+" of "+str(galaxy_no))
