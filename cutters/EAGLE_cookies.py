@@ -176,7 +176,7 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
     """
     A function to accept a table of GalaxyID/centres and produce HDF5 files for
     each galaxy contained in the table.
-    
+
     first_eagle_file :: (String) describing the path to one of the eagle files
                         from the relevant snapshot
     snap_num         :: (Numeric) the snapshot number
@@ -191,7 +191,7 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
     regions_df = pandas.read_csv(cutout_details, comment="#")
     galaxy_no = len(regions_df["GalaxyID"])
 
-    for i in range(galaxy_no):
+    for i in range(galaxy_no-1):
 
         if galID:
             gn = np.array([regions_df["GroupNumber"][i]])
