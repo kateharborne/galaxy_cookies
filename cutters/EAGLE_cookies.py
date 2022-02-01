@@ -191,18 +191,35 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
     regions_df = pandas.read_csv(cutout_details, comment="#")
     galaxy_no = len(regions_df["GalaxyID"])
 
-    for i in range(galaxy_no-1):
+    if galaxy_no > 1:
 
+        for i in range(galaxy_no-1):
+
+            if galID:
+                gn = np.array([regions_df["GroupNumber"][i]])
+                sgn = np.array([regions_df["SubGroupNumber"][i]])
+            else:
+                gn = None
+                sgn = None
+
+            centre = np.array([regions_df["CentreOfPotential_x"][i],
+                               regions_df["CentreOfPotential_y"][i],
+                               regions_df["CentreOfPotential_z"][i]])
+            galaxy_cutout = CreateEagleGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
+            write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][i])+".hdf5")
+            print("Galaxy "+str(i+1)+" of "+str(galaxy_no-1))
+
+    else:
         if galID:
-            gn = np.array([regions_df["GroupNumber"][i]])
-            sgn = np.array([regions_df["SubGroupNumber"][i]])
+            gn = np.array([regions_df["GroupNumber"]][0])
+            sgn = np.array([regions_df["SubGroupNumber"]][0])
         else:
             gn = None
             sgn = None
 
-        centre = np.array([regions_df["CentreOfPotential_x"][i],
-                           regions_df["CentreOfPotential_y"][i],
-                           regions_df["CentreOfPotential_z"][i]])
+        centre = np.array([regions_df["CentreOfPotential_x"][0],
+                           regions_df["CentreOfPotential_y"][0],
+                           regions_df["CentreOfPotential_z"][0]])
         galaxy_cutout = CreateEagleGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
-        write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][i])+".hdf5")
-        print("Galaxy "+str(i+1)+" of "+str(galaxy_no))
+        write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][0])+".hdf5")
+        print("Galaxy "+str(1)+" of "+str(1))

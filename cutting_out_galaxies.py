@@ -37,7 +37,7 @@ if args.sim_type == "EAGLE" or args.sim_type == "eagle":
 
     cutout_eagle_galaxies(first_eagle_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
-    with open(f"{args.output_loc}/README.txt", 'w') as f:
+    with open(f"{args.output_location}/README.txt", 'w') as f:
         f.write('Summary of galaxy cutout files \n')
         f.write(f"Written on {date.today()} \n")
         f.write("\n")
