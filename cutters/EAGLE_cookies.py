@@ -31,6 +31,8 @@ class CreateEagleGalaxyCutout:
         for attr in list(f["Header"].attrs):
             self.header[attr] = f["Header"].attrs.get(attr)
 
+        self.header["RunLabel"] = "Eagle"
+
         f.close()
 
         return self.header

@@ -2,6 +2,7 @@ import os
 from argparse import ArgumentParser
 from datetime import date
 from cutters.EAGLE_cookies import *
+from cutters.Magneticum_cookies import *
 
 # Define arguments ----
 parser = ArgumentParser()
@@ -37,11 +38,21 @@ if args.sim_type == "EAGLE" or args.sim_type == "eagle":
 
     cutout_eagle_galaxies(first_eagle_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
-    with open(f"{args.output_location}/README.txt", 'w') as f:
-        f.write('Summary of galaxy cutout files \n')
-        f.write(f"Written on {date.today()} \n")
-        f.write("\n")
-        f.write(f"Simulation: {args.sim_type}\n")
-        f.write(f"Centres and galaxy IDs specified by the table: {args.cutout_details}\n")
-        f.write(f"Files contain particles within spherical radius: {args.region_radius} kpc\n")
-        f.write(f"Files contain just particles associated with the galaxy ID?: {args.galID}\n")
+if args.sim_type == "MAGNETICUM" or args.sim_type == "magneticum":
+
+    if args.galID:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"
+    else:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_galaxyID_"
+
+    cutout_magneticum_galaxies(magnet_file_loc = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
+
+
+with open(f"{args.output_location}/README.txt", 'w') as f:
+    f.write('Summary of galaxy cutout files \n')
+    f.write(f"Written on {date.today()} \n")
+    f.write("\n")
+    f.write(f"Simulation: {args.sim_type}\n")
+    f.write(f"Centres and galaxy IDs specified by the table: {args.cutout_details}\n")
+    f.write(f"Files contain particles within spherical radius: {args.region_radius} kpc\n")
+    f.write(f"Files contain just particles associated with the galaxy ID?: {args.galID}\n")
