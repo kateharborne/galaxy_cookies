@@ -29,7 +29,7 @@ if args.galID:
 else:
     print(f"galID = {args.galID}: We will be selecting all particles within the radius {args.region_radius} kpc.")
 
-if args.sim_type == "EAGLE" or args.sim_type == "eagle":
+if args.sim_type == "EAGLE" or args.sim_type == "eagle" or args.sim_type == "Eagle":
 
     if args.galID:
         out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"
@@ -38,7 +38,7 @@ if args.sim_type == "EAGLE" or args.sim_type == "eagle":
 
     cutout_eagle_galaxies(first_eagle_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
-if args.sim_type == "MAGNETICUM" or args.sim_type == "magneticum":
+if args.sim_type == "MAGNETICUM" or args.sim_type == "magneticum" or args.sim_type == "Magneticum":
 
     if args.galID:
         out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"

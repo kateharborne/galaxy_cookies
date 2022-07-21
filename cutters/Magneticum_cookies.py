@@ -7,6 +7,7 @@ import pandas
 import numpy as np
 import gc
 import h5py
+import pickle
 
 class CreateMagneticumGalaxyCutout:
 
@@ -19,7 +20,7 @@ class CreateMagneticumGalaxyCutout:
         self.box_size     = self.header["BoxSize"]
 
         # load individual galaxy data
-        self.data, self.numpart_total = self.read_galaxy(magnet_file_loc, centre, region_radius)
+        self.data, self.numpart_total = self.read_galaxy(magnet_file_loc, centre, region_radius, with_ids)
 
 
     def read_header(self, first_magnet_file):
@@ -53,7 +54,7 @@ class CreateMagneticumGalaxyCutout:
 
         return self.header
 
-    def convert_dataset_names(dataset):
+    def convert_dataset_names(self, dataset):
         """
         Given a list of strings of Gadget2 binary block names, convert to new HDF5 Group names
         """
@@ -87,7 +88,7 @@ class CreateMagneticumGalaxyCutout:
 
         return dataset
 
-    def get_attributes(dataset):
+    def get_attributes(self, dataset):
         """
         Given a list of HDF5 Group names, output a dictionary containing the relevant attributes
         for that HDF5 Group.
@@ -246,12 +247,12 @@ class CreateMagneticumGalaxyCutout:
                     coord[:,1] = (coord[:,1] - centre[1]) * (self.scale_factor/self.hubble_param) # in physical coordinates, kpc
                     coord[:,2] = (coord[:,2] - centre[2]) * (self.scale_factor/self.hubble_param) # in physical coordinates, kpc
 
-                    if with_ids in None: #the cut out is just trimmed based on radius
+                    if with_ids is None: #the cut out is just trimmed based on radius
                         # masking out particles that lie outside of the required radius
                         mask = ((coord[:,0]*coord[:,0]) + (coord[:,1]*coord[:,1]) + (coord[:,2]*coord[:,2])) < (region_radius*region_radius)
                     else:
                         mask1 = ((coord[:,0]*coord[:,0]) + (coord[:,1]*coord[:,1]) + (coord[:,2]*coord[:,2])) < (region_radius*region_radius)
-                        mask2 = np.isin(magnet_data[itype]['POS '], with_ids)
+                        mask2 = np.isin(magnet_data[itype]['ID  '], with_ids)
                         mask = np.logical_and(mask1, mask2)
 
                     nopig = np.sum(mask) # number of particles within radius?
@@ -261,8 +262,8 @@ class CreateMagneticumGalaxyCutout:
                         print(f"Particle type {itype} - keeping {nopig} particles in galaxy from Magneticum snapshot file")
                         self.data[f"PartType{itype}"] = {}
                         read_datasets = list(magnet_data[itype].keys())
-                        new_dataset_name = convert_dataset_names(read_datasets)
-                        attrs = get_attributes(new_dataset_name)
+                        new_dataset_name = self.convert_dataset_names(read_datasets)
+                        attrs = self.get_attributes(new_dataset_name)
 
                         for dset_name in read_datasets:
                             tmp = magnet_data[itype][dset_name][mask]
@@ -336,6 +337,7 @@ def cutout_magneticum_galaxies(magnet_file_loc, snap_num, cutout_details, region
                         from the relevent snapshot
     snap_num         :: (Numeric) the snapshot number
     cutout_details   :: (String) describing the path to the GalaxyID/Centres table
+                        in numpy format.
     region_radius    :: (Numeric) the radius of the spherical region to be
                         extracted from the simulation
     output_location  :: (String) describing the path to the HDF5 file written
