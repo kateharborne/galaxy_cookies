@@ -222,7 +222,7 @@ class CreateMagneticumGalaxyCutout:
         self.data={}
 
         # Put region radius into units of ckpc/h
-        region_radius = region_radius * (self.scale_factor/self.hubble_param)
+        region_radius = region_radius #* (self.scale_factor/self.hubble_param)
         boxsize = (self.box_size / self.scale_factor)
 
         self.numpart_total = np.zeros(6, dtype="uint64")
@@ -273,8 +273,8 @@ class CreateMagneticumGalaxyCutout:
                             self.data[f"PartType{itype}"][new_dataset_name[ds_index]]['attrs'] = attrs[new_dataset_name[ds_index]]
 
         for ptype in self.data.keys():
-            # Periodic wrap coordiantes around centre
-            self.data[f"{ptype}"]['Coordinates']["data"] = np.mod(self.data[f"{ptype}"]['Coordinates']["data"] - centre+0.5*boxsize, boxsize) + centre-0.5*boxsize
+            # Periodic wrap coordiantes around centre IS UNNECESSARY AS MAGNETICUM FUNCTION AUTO DOES THIS!
+            #self.data[f"{ptype}"]['Coordinates']["data"] = np.mod(self.data[f"{ptype}"]['Coordinates']["data"] - centre+0.5*boxsize, boxsize) + centre-0.5*boxsize
             self.numpart_total[int(ptype[8])] = len(self.data[f"{ptype}"]['ParticleIDs']['data'])
 
         return self.data, self.numpart_total
@@ -328,7 +328,7 @@ def write_magneticum_galaxy_to_file(galaxy_cutout, snap_num, output_location):
 
     print("Written galaxy to file: "+output_location)
 
-def cutout_magneticum_galaxies(magnet_file_loc, snap_num, cutout_details, region_radius, output_location):
+def cutout_magneticum_galaxies(magnet_file_loc, snap_num, cutout_details, region_radius, output_location, galID):
     """
     A function to accept a table of GalaxyID/centres and produce HDF5 files for
     each galaxy contained in the table.
@@ -360,5 +360,5 @@ def cutout_magneticum_galaxies(magnet_file_loc, snap_num, cutout_details, region
             part_ids = None
 
         galaxy_cutout = CreateMagneticumGalaxyCutout(magnet_file_loc = magnet_file_loc, centre = centre, region_radius = region_radius, with_ids = part_ids)
-        write_galaxy_to_file(galaxy_cutout = galaxy_cutout, snap_num = snap_num, output_location = output_location+str(regions_df["subhalo_ID"][i])+".hdf5")
+        write_magneticum_galaxy_to_file(galaxy_cutout = galaxy_cutout, snap_num = snap_num, output_location = output_location+str(regions_df["subhalo_ID"][i])+".hdf5")
         print("Galaxy "+str(i + 1)+" of "+str(galaxy_no))

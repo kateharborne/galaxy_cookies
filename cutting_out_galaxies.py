@@ -3,11 +3,12 @@ from argparse import ArgumentParser
 from datetime import date
 from cutters.EAGLE_cookies import *
 from cutters.Magneticum_cookies import *
+from cutters.IllustrisTNG_cookies import *
 
 # Define arguments ----
 parser = ArgumentParser()
 parser.add_argument("-t", "--type", action="store", dest="sim_type", type=str,
-                    default=False, help="Simulation being cut out. Options include EAGLE and Magneticum.")
+                    default=False, help="Simulation being cut out. Options include EAGLE, Magneticum and IllustrisTNG.")
 parser.add_argument("-f", "--first_file", action="store", dest="first_file", type=str,
                     default=None, help="The path to one of the files from the relevant snapshot.")
 parser.add_argument("-c", "--cutout_details", action="store", dest="cutout_details", type=str,
@@ -20,6 +21,8 @@ parser.add_argument("-r", "--radius", action="store", dest="region_radius", type
                     default=None, help="The radius of the spherical region to be extracted from the simulation (in physical kpc).")
 parser.add_argument("-g", "--galID", action="store_true", dest="galID",
                     default=False, help="Specify this flag if you would like to only cut out particles associated to that GalaxyID.")
+parser.add_argument("-e", "--extras", action="store", dest="extras", type=str,
+                    default=None, help="The path to any addition files (such as coordinates per chunk) necessary for cutting out.")
 
 # Parse arguments ----
 args = parser.parse_args()
@@ -47,12 +50,22 @@ if args.sim_type == "MAGNETICUM" or args.sim_type == "magneticum" or args.sim_ty
 
     cutout_magneticum_galaxies(magnet_file_loc = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID=args.galID)
 
+if args.sim_type == "ILLUSTRISTNG" or args.sim_type == "IllustrisTNG" or args.sim_type == "illustristng" or args.sim_type == "TNG":
+
+    if args.galID:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"
+    else:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_galaxyID_"
+    
+    cutout_illustris_galaxies(base_path = args.first_file, snapshot = args.snap_num, cutout_details = args.cutout_details, coordinate_chunks = args.extras, region_radius = args.region_radius, output_location = out_files, galID = args.galID)
+
 
 with open(f"{args.output_location}/README.txt", 'w') as f:
     f.write('Summary of galaxy cutout files \n')
     f.write(f"Written on {date.today()} \n")
     f.write("\n")
     f.write(f"Simulation: {args.sim_type}\n")
+    f.write(f"Using snapshots provided in: {args.first_file} \n")
     f.write(f"Centres and galaxy IDs specified by the table: {args.cutout_details}\n")
     f.write(f"Files contain particles within spherical radius: {args.region_radius} kpc\n")
     f.write(f"Files contain just particles associated with the galaxy ID?: {args.galID}\n")
