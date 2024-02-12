@@ -165,7 +165,7 @@ def write_magneticum_galaxy_to_file(galaxy_cutout, snap_num, output_location):
 
     print("Written galaxy to file: "+output_location)
 
-def cutout_magneticum_galaxies(magnet_file_loc, snap_num, regions_file, region_radius, output_location):
+def cutout_magneticum_galaxies(magnet_file_loc, snap_num, cutout_details, region_radius, output_location):
     """
     A function to accept a table of GalaxyID/centres and produce HDF5 files for
     each galaxy contained in the table.
