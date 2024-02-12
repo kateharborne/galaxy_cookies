@@ -31,6 +31,8 @@ class CreateEagleGalaxyCutout:
         for attr in list(f["Header"].attrs):
             self.header[attr] = f["Header"].attrs.get(attr)
 
+        self.header["RunLabel"] = "Eagle"
+
         f.close()
 
         return self.header
@@ -223,3 +225,5 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
         galaxy_cutout = CreateEagleGalaxyCutout(first_eagle_file = first_eagle_file, centre = centre, region_radius = region_radius, gn = gn, sgn = sgn)
         write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][0])+".hdf5")
         print("Galaxy "+str(1)+" of "+str(1))
+
+def find_eagle_galaxies(first_group_table, snap_num):
