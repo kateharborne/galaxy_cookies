@@ -2,7 +2,6 @@
 # from the Magneticum simulation.
 
 import g3read
-import g3read_units
 import pandas
 import numpy as np
 import gc

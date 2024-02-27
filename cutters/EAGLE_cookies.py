@@ -6,6 +6,7 @@ import pandas
 import pyread_eagle as read_eagle
 import gc
 import h5py
+import g3read
 
 class CreateEagleGalaxyCutout:
 
@@ -191,7 +192,7 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
     """
 
     regions_df = pandas.read_csv(cutout_details, comment="#")
-    galaxy_no = len(regions_df["GalaxyID"])
+    galaxy_no = len(regions_df.index)
 
     if galaxy_no > 1:
 
@@ -226,4 +227,3 @@ def cutout_eagle_galaxies(first_eagle_file, snap_num, cutout_details, region_rad
         write_eagle_galaxy_to_file(galaxy_cutout = galaxy_cutout, first_eagle_file = first_eagle_file, snap_num = snap_num, output_location = output_location+str(regions_df["GalaxyID"][0])+".hdf5")
         print("Galaxy "+str(1)+" of "+str(1))
 
-def find_eagle_galaxies(first_group_table, snap_num):
