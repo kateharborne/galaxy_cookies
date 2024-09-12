@@ -67,7 +67,7 @@ class CreateMagneticumGalaxyCutout:
         dataset = [item.replace('iM  ', 'InitialMass') for item in dataset]
         dataset = [item.replace('TEMP', 'Temperature') for item in dataset]
         dataset = [item.replace('Zs  ', 'Metallicity') for item in dataset]
-        dataset = [item.replace('HSML', 'SmoothingLength_gas') for item in dataset]
+        dataset = [item.replace('HSML', 'SmoothingLength') for item in dataset]
         dataset = [item.replace('HSMS', 'SmoothingLength_stars') for item in dataset]
         dataset = [item.replace('ID  ', 'ParticleIDs') for item in dataset]
         dataset = [item.replace('POT ', 'Potential') for item in dataset]
@@ -112,8 +112,8 @@ class CreateMagneticumGalaxyCutout:
                                           'h-scale-exponent': 2.0,
                                           'aexp-scale-exponent': -3.0,
                                           'VarDescription': 'Comoving mass density [1e10 Msol/h / (kpc/h)^3]. Rho = Density h^2 a^-3 CGSConversionFactor [g/(cm)^3]'},
-                     'StarFormationRate':{'CGSConversionFactor': 6.306278e35,
-                                          'h-scale-exponent': -1.0,
+                     'StarFormationRate':{'CGSConversionFactor': 6.304278922345484E25,
+                                          'h-scale-exponent': 0,
                                           'aexp-scale-exponent': 0,
                                           'VarDescription': 'Star formation rate [1e10 Msol/h / yr]. SFR_cgs = SFR h^-1 CGSConversionFactor [g/s]'},
                      'StellarFormationTime':{'CGSConversionFactor': 1.0,
@@ -132,7 +132,7 @@ class CreateMagneticumGalaxyCutout:
                                           'h-scale-exponent': -1.0,
                                           'aexp-scale-exponent': 0,
                                           'VarDescription': 'Vector containing the mass of each 11 elements [1e10 Msol/h] He, C, Ca, O, N, Ne, Mg, S, Si, Fe, Eh (remaining metals). Physical masses: M = Mass h^-1 CGSConversionFactor [g]'},
-                     'SmoothingLength_gas': {'CGSConversionFactor': 3.086e21,
+                     'SmoothingLength': {'CGSConversionFactor': 3.086e21,
                                              'h-scale-exponent': -1.0,
                                              'aexp-scale-exponent': 1.0,
                                              'VarDescription': 'Co-moving smoothing lengths [kpc/h]. Physical smoothing lengths: r = ax = Coordiantes h^-1 a CGSConversionFactor [cm]'},
@@ -221,7 +221,7 @@ class CreateMagneticumGalaxyCutout:
         self.data={}
 
         # Put region radius into units of ckpc/h
-        region_radius = region_radius #* (self.scale_factor/self.hubble_param)
+        region_radius = region_radius * (self.hubble_param/self.scale_factor)
         boxsize = (self.box_size / self.scale_factor)
 
         self.numpart_total = np.zeros(6, dtype="uint64")

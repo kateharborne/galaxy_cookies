@@ -4,9 +4,7 @@
 import numpy as np
 import pandas
 import pyread_eagle as read_eagle
-import gc
 import h5py
-import g3read
 
 class CreateEagleGalaxyCutout:
 
@@ -55,12 +53,12 @@ class CreateEagleGalaxyCutout:
         boxsize = self.box_size * self.hubble_param
 
         # Select region to load
-        assert region_radius < 100, "Requested region_radius must be less than 100kpc."
+        #assert region_radius <= 100, "Requested region_radius must be less than 100kpc."
 
         self.region = np.array([ # selecting a region that is 100kpc big out of the box
-            (centre[0]-0.1), (centre[0]+0.1),
-            (centre[1]-0.1), (centre[1]+0.1),
-            (centre[2]-0.1), (centre[2]+0.1)
+            (centre[0]-1), (centre[0]+1),
+            (centre[1]-1), (centre[1]+1),
+            (centre[2]-1), (centre[2]+1)
         ])
 
         self.numpart_total = np.zeros(6, dtype="uint64")
@@ -77,6 +75,7 @@ class CreateEagleGalaxyCutout:
 
             if nop > 0: # if there are particles in this particle type within the region
                 coord = eagle_data.read_dataset(itype, "/Coordinates")
+                coord = np.mod(coord - centre+0.5*boxsize, boxsize) + centre-0.5*boxsize
                 coord[:,0] = (coord[:,0] - centre[0]) * (self.scale_factor/self.hubble_param) * 1e3 # in physical coordinates, kpc
                 coord[:,1] = (coord[:,1] - centre[1]) * (self.scale_factor/self.hubble_param) * 1e3 # in physical coordinates, kpc
                 coord[:,2] = (coord[:,2] - centre[2]) * (self.scale_factor/self.hubble_param) * 1e3 # in physical coordinates, kpc
@@ -85,9 +84,9 @@ class CreateEagleGalaxyCutout:
                 if gn is None: # if no gn and no sgn is provided, the cut out is just trimmed based on radius
                     mask = ((coord[:,0]*coord[:,0]) + (coord[:,1]*coord[:,1]) + (coord[:,2]*coord[:,2])) <= (region_radius*region_radius)
                 else: # if gn and sgn are provided, the particles are further trimmed t only include relavent galaxy particles
-                    mask1 = ((coord[:,0]*coord[:,0]) + (coord[:,1]*coord[:,1]) + (coord[:,2]*coord[:,2])) <= (region_radius*region_radius)
-                    mask2 = np.logical_and(eagle_data.read_dataset(itype, '/GroupNumber') == gn, eagle_data.read_dataset(itype, '/SubGroupNumber') == sgn)
-                    mask = np.logical_and(mask1, mask2)
+                    #mask1 = ((coord[:,0]*coord[:,0]) + (coord[:,1]*coord[:,1]) + (coord[:,2]*coord[:,2])) <= (region_radius*region_radius)
+                    mask = np.logical_and(eagle_data.read_dataset(itype, '/GroupNumber') == gn, eagle_data.read_dataset(itype, '/SubGroupNumber') == sgn)
+                    #mask = np.logical_and(mask1, mask2)
 
                 nopig = np.sum(mask) # number of particles within radius?
 

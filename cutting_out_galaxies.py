@@ -4,11 +4,12 @@ from datetime import date
 from cutters.EAGLE_cookies import *
 from cutters.Magneticum_cookies import *
 from cutters.IllustrisTNG_cookies import *
+from cutters.COLIBRE_cookies import *
 
 # Define arguments ----
 parser = ArgumentParser()
 parser.add_argument("-t", "--type", action="store", dest="sim_type", type=str,
-                    default=False, help="Simulation being cut out. Options include EAGLE, Magneticum and IllustrisTNG.")
+                    default=False, help="Simulation being cut out. Options include EAGLE, Magneticum, IllustrisTNG, and Colibre.")
 parser.add_argument("-f", "--first_file", action="store", dest="first_file", type=str,
                     default=None, help="The path to one of the files from the relevant snapshot.")
 parser.add_argument("-c", "--cutout_details", action="store", dest="cutout_details", type=str,
@@ -57,8 +58,16 @@ if args.sim_type == "ILLUSTRISTNG" or args.sim_type == "IllustrisTNG" or args.si
     else:
         out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_galaxyID_"
     
-    cutout_illustris_galaxies(base_path = args.first_file, snapshot = args.snap_num, cutout_details = args.cutout_details, coordinate_chunks = args.extras, region_radius = args.region_radius, output_location = out_files, galID = args.galID)
+    cutout_illustris_galaxies(base_path = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, coordinate_chunks = args.extras, region_radius = args.region_radius, output_location = out_files, galID = args.galID)
 
+if args.sim_type == "COLIBRE" or args.sim_type == "Colibre" or args.sim_type == "colibre":
+
+    if args.galID:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_with_galaxyID_"
+    else:
+        out_files = f"{args.output_location}/{args.sim_type}_snap{int(args.snap_num)}_{int(args.region_radius)}kpc_galaxyID_"
+    
+    cutout_colibre_galaxies(first_colibre_file = args.first_file, snap_num = args.snap_num, cutout_details = args.cutout_details, region_radius = args.region_radius, output_location = out_files, galID = True)
 
 with open(f"{args.output_location}/README.txt", 'w') as f:
     f.write('Summary of galaxy cutout files \n')
