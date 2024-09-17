@@ -3,11 +3,9 @@
 
 import numpy as np
 import pandas
-import swiftsimio
 import swiftgalaxy
 import h5py
 import unyt as u
-from swiftsimio import SWIFTDataset
 
 class CreateColibreGalaxyCutout:
 
@@ -20,9 +18,10 @@ class CreateColibreGalaxyCutout:
         self.scale_factor = self.header["Time"]
         self.hubble_param = self.header["HubbleParam"]
         self.box_size     = self.header["BoxSize"]
+        self.centre       = galaxy.centre
 
         # load individual galaxy data
-        self.data, self.numpart_total = self.read_galaxy(galaxy, region_radius)
+        self.data, self.numpart_total, self.header = self.read_galaxy(galaxy, region_radius)
 
     def read_header(self, galaxy):
         """
@@ -35,6 +34,7 @@ class CreateColibreGalaxyCutout:
         self.header["HubbleParam"] = galaxy.stars.metadata.cosmology.h
         self.header["MassTable"] = galaxy.stars.metadata.header['InitialMassTable']
         self.header["NumPart_Total"] = ([galaxy.gas.coordinates.shape[0], galaxy.dark_matter.coordinates.shape[0], 0, 0, galaxy.stars.coordinates.shape[0],0])
+        self.header["Time"] = galaxy.stars.metadata.scale_factor
         self.header["RunLabel"] = "Colibre"
 
         return self.header
@@ -52,20 +52,24 @@ class CreateColibreGalaxyCutout:
         nstars = galaxy.stars.coordinates.shape[0]
         ndm = galaxy.dark_matter.coordinates.shape[0]
    
-        self.numpart_total = [ngas, ndm, 0, 0, nstars, 0]
+        self.numpart_total = np.zeros(6, dtype="uint64")
 
-        gas_attr = ["coordinates", "densities", "masses", "particle_ids", "metal_mass_fractions", "star_formation_rates", 
-                    "smoothing_lengths", "velocities", "element_mass_fractions.carbon", "element_mass_fractions.oxygen",
-                    "element_mass_fractions.hydrogen", "internal_energies", "temperatures"]
-        gas_attr_name = ["Coordinates", "Density", "Mass", "ParticleIDs", "Metallicity", "StarFormationRate", "SmoothingLength",
-                         "Velocity", "ElementAbundance/Carbon", "ElementAbundance/Oxygen", "ElementAbundance/Hydrogen",
-                          "InternalEnergy", "Temperature" ]
+        gas_attr = ["coordinates", "densities", "masses", "particle_ids", "metal_mass_fractions", 
+                    "star_formation_rates", "smoothing_lengths", "internal_energies", "temperatures", 
+                    "velocities", "carbon", 
+                    "oxygen", "hydrogen"]
+        gas_attr_name = ["Coordinates", "Densities", "Masses", "ParticleIDs", "MetalMassFractions", 
+                         "StarFormationRates", "SmoothingLengths", "InternalEnergies", "Temperatures", 
+                         "Velocities", "ElementMassFractions/Carbon", 
+                         "ElementMassFractions/Oxygen", "ElementMassFractions/Hydrogen"]
 
         dm_attr = ["coordinates", "masses", "particle_ids", "velocities"]
-        dm_attr_name = ["Coordinates", "Mass", "ParticleIDs", "Velocity"]
+        dm_attr_name = ["Coordinates", "Masses", "ParticleIDs", "Velocities"]
 
-        star_attr = ["coordinates", "initial_masses", "masses", "particle_ids", "metal_mass_fractions", "velocities", "birth_scale_factors"]
-        star_attr_name = ["Coordinates", "InitialMass", "Mass", "ParticleIDs", "Metallicity", "Velocity", "StellarFormationTime"]
+        star_attr = ["coordinates", "initial_masses", "masses", "particle_ids", "metal_mass_fractions", 
+                     "velocities", "birth_scale_factors"]
+        star_attr_name = ["Coordinates", "InitialMasses", "Masses", "ParticleIDs", "MetalMassFractions", 
+                          "Velocities", "BirthScaleFactors"]
     
         type_index = ["0","1","4"] 
 
@@ -87,8 +91,22 @@ class CreateColibreGalaxyCutout:
                     
                     if ptype == "gas":
                         for anum, dset_name in enumerate(gas_attr):
-                            tmp = getattr(getattr(galaxy,ptype),dset_name)[mask]
-                            self.data[f"PartType{type_index[num]}"][gas_attr_name[anum]] = tmp
+                            if anum < 10:
+                                print(f"{dset_name} = {anum}")
+                                tmp = getattr(getattr(galaxy,ptype),dset_name)[mask]
+                                self.data[f"PartType{type_index[num]}"][gas_attr_name[anum]] = tmp
+                            if anum == 10:
+                                print(f"{dset_name} = {anum}")
+                                tmp = galaxy.gas.element_mass_fractions.carbon[mask]
+                                self.data[f"PartType{type_index[num]}"][gas_attr_name[anum]] = tmp
+                            if anum == 11:
+                                print(f"{dset_name} = {anum}")
+                                tmp = galaxy.gas.element_mass_fractions.oxygen[mask]
+                                self.data[f"PartType{type_index[num]}"][gas_attr_name[anum]] = tmp
+                            if anum == 12:
+                                print(f"{dset_name} = {anum}")
+                                tmp = galaxy.gas.element_mass_fractions.hydrogen[mask]
+                                self.data[f"PartType{type_index[num]}"][gas_attr_name[anum]] = tmp
 
                     if ptype == "dark_matter":
                         for anum, dset_name in enumerate(dm_attr):
@@ -99,6 +117,11 @@ class CreateColibreGalaxyCutout:
                         for anum, dset_name in enumerate(star_attr):
                             tmp = getattr(getattr(galaxy,ptype),dset_name)[mask]
                             self.data[f"PartType{type_index[num]}"][star_attr_name[anum]] = tmp
+                            
+        for ptype in self.data.keys():
+            # Periodic wrap coordiantes around centre IS UNNECESSARY AS MAGNETICUM FUNCTION AUTO DOES THIS!
+            #self.data[f"{ptype}"]['Coordinates']["data"] = np.mod(self.data[f"{ptype}"]['Coordinates']["data"] - centre+0.5*boxsize, boxsize) + centre-0.5*boxsize
+            self.numpart_total[int(ptype[8])] = len(self.data[f"{ptype}"]['ParticleIDs'])
 
         return self.data, self.numpart_total, self.header
 
@@ -129,7 +152,7 @@ def write_colibre_galaxy_to_file(galaxy_cutout, virtual_snapshot_file, snap_num,
     header.attrs["ExtractedFromSnapshot"] = snap_num
 
     # Add region spec and type flags
-    header.attrs["RegionExtracted"] = np.array(galaxy_cutout.data.centre.to_physical.to_value(u.kpc), dtype="float64")
+    header.attrs["RegionExtracted"] = np.array(galaxy_cutout.centre, dtype="float64")
     header.attrs["TypesExtracted"]  = np.array((1,1,1,1,1,1), dtype="int32")
     header.attrs["SamplingRate"] = 1.0
 
@@ -144,8 +167,14 @@ def write_colibre_galaxy_to_file(galaxy_cutout, virtual_snapshot_file, snap_num,
                                 shuffle=True,
                                 compression="gzip",
                                 compression_opts=6)
-                for (name,val) in f[f"{ptype}/{att}"].attrs.items():
-                    hf[f"{ptype}/{att}"].attrs[name] = val
+                if len(att.split("/")) == 2:
+                    for (name,val) in f[f"{ptype}/ElementMassFractions"].attrs.items():
+                        print(f"{ptype}/{att} : {name} - {val}")
+                        hf[f"{ptype}/{att}"].attrs[name] = val
+                else:
+                    for (name,val) in f[f"{ptype}/{att}"].attrs.items():
+                        print(f"{ptype}/{att} : {name} - {val}")
+                        hf[f"{ptype}/{att}"].attrs[name] = val
 
     f.close()
     hf.close()
@@ -194,4 +223,3 @@ def cutout_colibre_galaxies(first_colibre_file, snap_num, cutout_details, region
         galaxy_cutout = CreateColibreGalaxyCutout(virtual_snapshot_file=virtual_snapshot_file, soap_catalogue_file=soap_catalogue_file, region_radius=region_radius, gal_id=gal_id)
         write_colibre_galaxy_to_file(galaxy_cutout = galaxy_cutout, virtual_snapshot_file = virtual_snapshot_file, snap_num = snap_num, output_location =  output_location+str(regions_df["GalaxyID"][0])+".hdf5")
         print("Galaxy "+str(1)+" of "+str(1))
-
